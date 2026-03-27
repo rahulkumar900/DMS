@@ -40,11 +40,12 @@ export default async function AccountsDashboard(
 async function AccountsContent({ searchParams }: any) {
   const params = await searchParams;
   const siteId = typeof params.site === 'string' ? params.site : undefined;
+  const search = typeof params.search === 'string' ? params.search : undefined;
   const page = Number(params.page) || 1
   const pageSize = Number(params.pageSize) || 10
 
   const [{ documents, totalCount, totalPages }, sitesData, stats] = await Promise.all([
-    getApprovedDocuments({ siteId, page, pageSize }),
+    getApprovedDocuments({ siteId, search, page, pageSize }),
     getAllActiveSites(),
     getDashboardStats(siteId)
   ])

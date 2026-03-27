@@ -7,10 +7,12 @@ import { revalidatePath } from 'next/cache'
 // Get all APPROVED documents that are NOT archived with pagination
 export async function getApprovedDocuments({
   siteId,
+  search,
   page = 1,
   pageSize = 10
 }: {
   siteId?: string,
+  search?: string,
   page?: number,
   pageSize?: number
 } = {}) {
@@ -28,6 +30,39 @@ export async function getApprovedDocuments({
 
   if (siteId && siteId !== 'all') {
     query = query.eq('site_id', siteId)
+  }
+
+  if (search) {
+    // 1. Search for matching vendors and sites to get their IDs
+    const [vendorMatch, siteMatch] = await Promise.all([
+      supabase.from('vendors').select('id').ilike('name', `%${search}%`),
+      supabase.from('sites').select('id').ilike('name', `%${search}%`)
+    ])
+
+    const matchedVendorIds = vendorMatch.data?.map((v: any) => v.id) || []
+    const matchedSiteIds = siteMatch.data?.map((s: any) => s.id) || []
+
+    // 2. Build OR conditions
+    const orConditions = [
+      `unique_code.ilike.%${search}%`,
+      `invoice_number.ilike.%${search}%`,
+      `document_date.ilike.%${search}%`
+    ]
+
+    if (matchedVendorIds.length > 0) {
+      orConditions.push(`vendor_id.in.(${matchedVendorIds.join(',')})`)
+    }
+    if (matchedSiteIds.length > 0) {
+      orConditions.push(`site_id.in.(${matchedSiteIds.join(',')})`)
+    }
+
+    // Amount search (exact match if numeric)
+    const numericSearch = parseFloat(search)
+    if (!isNaN(numericSearch)) {
+      orConditions.push(`amount.eq.${numericSearch}`)
+    }
+
+    query = query.or(orConditions.join(','))
   }
 
   const { data, count, error } = await query

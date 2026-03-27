@@ -47,7 +47,39 @@ export async function getCheckerDocuments({
   }
 
   if (search) {
-    query = query.or(`unique_code.ilike.%${search}%,invoice_number.ilike.%${search}%`)
+    // 1. Search for matching vendors and sites to get their IDs
+    const [vendorMatch, siteMatch] = await Promise.all([
+      supabase.from('vendors').select('id').ilike('name', `%${search}%`),
+      supabase.from('sites').select('id').ilike('name', `%${search}%`)
+    ])
+
+    const matchedVendorIds = vendorMatch.data?.map(v => v.id) || []
+    const matchedSiteIds = siteMatch.data?.map(s => s.id) || []
+
+    // 2. Build OR conditions
+    const orConditions = [
+      `unique_code.ilike.%${search}%`,
+      `invoice_number.ilike.%${search}%`,
+      `document_date.ilike.%${search}%`
+    ]
+
+    if (matchedVendorIds.length > 0) {
+      orConditions.push(`vendor_id.in.(${matchedVendorIds.join(',')})`)
+    }
+    
+    // For sites, we only add if they are within the checker's assigned sites
+    const validMatchedSiteIds = matchedSiteIds.filter(id => filterIds.includes(id))
+    if (validMatchedSiteIds.length > 0) {
+      orConditions.push(`site_id.in.(${validMatchedSiteIds.join(',')})`)
+    }
+
+    // Amount search (exact match if numeric)
+    const numericSearch = parseFloat(search)
+    if (!isNaN(numericSearch)) {
+      orConditions.push(`amount.eq.${numericSearch}`)
+    }
+
+    query = query.or(orConditions.join(','))
   }
 
   const { data, count, error } = await query

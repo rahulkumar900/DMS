@@ -37,11 +37,12 @@ export default async function CheckerDashboard(
 async function CheckerContent({ searchParams, profile }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }>, profile: any }) {
   const params = await searchParams;
   const siteId = typeof params.site === 'string' ? params.site : undefined;
+  const search = typeof params.search === 'string' ? params.search : undefined;
   const page = Number(params.page) || 1
   const pageSize = Number(params.pageSize) || 12
 
   const [{ documents, totalCount, totalPages }, sitesData] = await Promise.all([
-    getCheckerDocuments({ siteId, status: 'PENDING', page, pageSize }),
+    getCheckerDocuments({ siteId, search, status: 'PENDING', page, pageSize }),
     getMyAssignedSites()
   ])
   const sites = (sitesData as any[]).map(s => ({ id: s.id, name: s.name }))
