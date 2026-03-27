@@ -159,73 +159,77 @@ export function UploadDocumentForm({ sites }: { sites: Site[] }) {
         <form ref={formRef} action={formAction} className="space-y-6" suppressHydrationWarning>
           <input type="hidden" name="site_id" value={currentSiteId} />
           
-          <div className="rounded-lg border bg-card overflow-hidden shadow-sm">
-            <Table>
-              <TableHeader className="bg-muted/50">
-                <TableRow className="hover:bg-transparent transition-none">
-                  <TableHead className="py-2 text-[10px] font-bold uppercase tracking-wider h-10 px-4">Vendor Details</TableHead>
-                  <TableHead className="py-2 text-[10px] font-bold uppercase tracking-wider h-10 w-[160px] px-4">Bill Metadata</TableHead>
-                  <TableHead className="py-2 text-[10px] font-bold uppercase tracking-wider h-10 w-[140px] px-4">Date</TableHead>
-                  <TableHead className="py-2 text-[10px] font-bold uppercase tracking-wider h-10 w-[160px] px-4">Amount (₹)</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow className="hover:bg-transparent border-none">
-                  <TableCell className="align-top py-4">
-                    <VendorAutocomplete 
-                      onSelect={(id, name, pan) => {
-                        setVendorName(name)
-                        setVendorId(id)
-                        if (pan) setGstPan(pan)
-                      }} 
-                      disabled={pending} 
-                    />
-                    <input type="hidden" name="vendor_id" value={vendorId} />
-                    <input type="hidden" name="vendor" value={vendorName} />
-                  </TableCell>
-                  <TableCell className="align-top py-4 space-y-2">
-                    <Input
-                      id="invoice_number"
-                      name="invoice_number"
-                      placeholder="Invoice #"
-                      className="bg-background h-10"
-                      disabled={pending}
-                    />
-                    <Input
-                      id="unique_code"
-                      name="unique_code"
-                      placeholder="Unique Code"
-                      className="bg-background h-10"
-                      disabled={pending}
-                    />
-                  </TableCell>
-                  <TableCell className="align-top py-4">
-                    <Input
-                      id="document_date"
-                      name="document_date"
-                      type="date"
-                      defaultValue={new Date().toISOString().split('T')[0]}
-                      required
-                      className="bg-background h-10"
-                      disabled={pending}
-                    />
-                  </TableCell>
-                  <TableCell className="align-top py-4">
-                    <Input
-                      id="amount"
-                      name="amount"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                      required
-                      className="bg-background h-10 font-bold"
-                      disabled={pending}
-                    />
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Vendor */}
+            <div className="space-y-2">
+              <Label htmlFor="vendor">Vendor / Supplier Name</Label>
+              <VendorAutocomplete 
+                onSelect={(id, name, pan) => {
+                  setVendorName(name)
+                  setVendorId(id)
+                  if (pan) setGstPan(pan)
+                }} 
+                disabled={pending} 
+              />
+              <input type="hidden" name="vendor_id" value={vendorId} />
+              <input type="hidden" name="vendor" value={vendorName} />
+            </div>
+
+            {/* Unique Code */}
+            <div className="space-y-2">
+              <Label htmlFor="unique_code">Unique Code / Bill No.</Label>
+              <Input
+                id="unique_code"
+                name="unique_code"
+                placeholder="e.g. UC-789"
+                className="bg-background h-10"
+                disabled={pending}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Invoice Number */}
+            <div className="space-y-2">
+              <Label htmlFor="invoice_number">Invoice Number</Label>
+              <Input
+                id="invoice_number"
+                name="invoice_number"
+                placeholder="e.g. INV-2024-001"
+                className="bg-background h-10"
+                disabled={pending}
+              />
+            </div>
+
+            {/* Document Date */}
+            <div className="space-y-2">
+              <Label htmlFor="document_date">Document Date</Label>
+              <Input
+                id="document_date"
+                name="document_date"
+                type="date"
+                defaultValue={new Date().toISOString().split('T')[0]}
+                required
+                className="bg-background h-10"
+                disabled={pending}
+              />
+            </div>
+          </div>
+
+          {/* Amount */}
+          <div className="space-y-2">
+            <Label htmlFor="amount">Bill Amount (₹)</Label>
+            <Input
+              id="amount"
+              name="amount"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="e.g. 12500.00"
+              required
+              className="bg-background h-10 font-bold"
+              disabled={pending}
+            />
           </div>
 
           <div className="grid gap-6 md:grid-cols-[1fr_200px] items-end">

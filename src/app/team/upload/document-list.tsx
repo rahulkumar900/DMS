@@ -19,7 +19,7 @@ import { IndianRupee, Eye, Building } from 'lucide-react'
 
 interface Document {
   id: string
-  vendor: string
+  vendors?: { name: string }
   amount: number
   status: string
   remarks: string | null
@@ -72,7 +72,7 @@ export function DocumentStatusList({ documents }: { documents: Document[] }) {
                   {formattedDate}
                 </TableCell>
                 <TableCell className="font-medium">
-                  {doc.vendor}
+                  {doc.vendors?.name || 'N/A'}
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
