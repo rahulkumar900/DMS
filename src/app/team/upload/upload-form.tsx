@@ -1,36 +1,31 @@
 'use client'
 import { useActionState, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { uploadDocument, extractDocumentData, uploadFileToStorage, bulkUploadDocuments } from '@/app/actions/team'
-import { Loader2, Upload, FileText, CheckCircle2, AlertCircle, Sparkles, Trash2, Edit2, Save, X } from 'lucide-react'
+import { Loader2, Upload, FileText, CheckCircle2, AlertCircle, Sparkles, Trash2, Edit2, Save, X, Info } from 'lucide-react'
 import { VendorAutocomplete } from '@/components/vendor-autocomplete'
 import { toast } from 'sonner'
 import { Switch } from '@/components/ui/switch'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 
 interface Site {
   id: string
   name: string
 }
 
-const INDIAN_STATES = [
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", 
-  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", 
-  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", 
-  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
-  "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", 
-  "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", 
-  "Ladakh", "Lakshadweep", "Puducherry"
-]
-
 export function UploadDocumentForm({ sites }: { sites: Site[] }) {
   const [state, formAction, pending] = useActionState(uploadDocument, undefined)
+  const searchParams = useSearchParams()
   const formRef = useRef<HTMLFormElement>(null)
+  const currentSiteId = searchParams.get('site')
   const [fileName, setFileName] = useState<string>('')
   const [vendorName, setVendorName] = useState('')
+  const [vendorId, setVendorId] = useState('')
   const [gstPan, setGstPan] = useState('')
   
   // AI Mode States
@@ -40,7 +35,6 @@ export function UploadDocumentForm({ sites }: { sites: Site[] }) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isSubmittingBulk, setIsSubmittingBulk] = useState(false)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
-  const [selectedSiteId, setSelectedSiteId] = useState<string>('')
 
   // Reset form on success
   useEffect(() => {
@@ -96,8 +90,8 @@ export function UploadDocumentForm({ sites }: { sites: Site[] }) {
   }
 
   const handleBulkUpload = async () => {
-    if (!selectedFile || extractedRows.length === 0 || !selectedSiteId) {
-      toast.error('Please select a site and ensure data is extracted.')
+    if (!selectedFile || extractedRows.length === 0 || !currentSiteId) {
+      toast.error('Please select a site from navbar and ensure data is extracted.')
       return
     }
 
@@ -117,7 +111,7 @@ export function UploadDocumentForm({ sites }: { sites: Site[] }) {
       const bulkRes = await bulkUploadDocuments({
         rows: extractedRows,
         fileUrl: uploadRes.url,
-        siteId: selectedSiteId
+        siteId: currentSiteId
       })
 
       if (bulkRes.success) {
@@ -155,172 +149,128 @@ export function UploadDocumentForm({ sites }: { sites: Site[] }) {
         </div>
       </div>
 
-      {!isAiMode ? (
-        <form ref={formRef} action={formAction} className="space-y-5" suppressHydrationWarning>
-          <div className="grid gap-5 md:grid-cols-2">
-            {/* Site Selection */}
+      {!currentSiteId ? (
+        <div className="flex flex-col items-center justify-center py-10 px-4 bg-amber-500/5 rounded-xl border border-dashed border-amber-500/30 text-amber-500 text-center">
+          <Info className="h-10 w-10 mb-3 opacity-80" />
+          <p className="font-semibold text-lg">No Project Site Selected</p>
+          <p className="text-sm opacity-80 mt-1">Please select a site from the global filter in the header to start uploading bills.</p>
+        </div>
+      ) : !isAiMode ? (
+        <form ref={formRef} action={formAction} className="space-y-6" suppressHydrationWarning>
+          <input type="hidden" name="site_id" value={currentSiteId} />
+          
+          <div className="rounded-xl border border-divider bg-muted/30 overflow-hidden shadow-sm">
+            <Table>
+              <TableHeader className="bg-muted/50 border-b">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="py-2 text-xs font-bold uppercase tracking-wider h-10">Vendor Details</TableHead>
+                  <TableHead className="py-2 text-xs font-bold uppercase tracking-wider h-10 w-[160px]">Bill Metadata</TableHead>
+                  <TableHead className="py-2 text-xs font-bold uppercase tracking-wider h-10 w-[140px]">Date</TableHead>
+                  <TableHead className="py-2 text-xs font-bold uppercase tracking-wider h-10 w-[160px]">Amount (₹)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow className="hover:bg-transparent border-none">
+                  <TableCell className="align-top py-4">
+                    <VendorAutocomplete 
+                      onSelect={(id, name, pan) => {
+                        setVendorName(name)
+                        setVendorId(id)
+                        if (pan) setGstPan(pan)
+                      }} 
+                      disabled={pending} 
+                    />
+                    <input type="hidden" name="vendor_id" value={vendorId} />
+                    <input type="hidden" name="vendor" value={vendorName} />
+                  </TableCell>
+                  <TableCell className="align-top py-4 space-y-2">
+                    <Input
+                      id="invoice_number"
+                      name="invoice_number"
+                      placeholder="Invoice #"
+                      className="bg-background h-10"
+                      disabled={pending}
+                    />
+                    <Input
+                      id="unique_code"
+                      name="unique_code"
+                      placeholder="Unique Code"
+                      className="bg-background h-10"
+                      disabled={pending}
+                    />
+                  </TableCell>
+                  <TableCell className="align-top py-4">
+                    <Input
+                      id="document_date"
+                      name="document_date"
+                      type="date"
+                      defaultValue={new Date().toISOString().split('T')[0]}
+                      required
+                      className="bg-background h-10"
+                      disabled={pending}
+                    />
+                  </TableCell>
+                  <TableCell className="align-top py-4">
+                    <Input
+                      id="amount"
+                      name="amount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      required
+                      className="bg-background h-10 font-bold"
+                      disabled={pending}
+                    />
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-[1fr_200px] items-end">
             <div className="space-y-2">
-              <Label htmlFor="site_id">Project Site</Label>
-              <select
-                id="site_id"
-                name="site_id"
-                required
-                disabled={pending}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              <Label className="text-sm font-medium">Bill Attachment (PDF or Image)</Label>
+              <label
+                htmlFor="file"
+                className={cn(
+                  "flex h-20 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all",
+                  fileName ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/50 hover:bg-muted/50"
+                )}
               >
-                <option value="">-- Select a site --</option>
-                {sites.map((site) => (
-                  <option key={site.id} value={site.id}>
-                    {site.name}
-                  </option>
-                ))}
-              </select>
+                <div className="flex items-center gap-3">
+                  <Upload className={cn("h-5 w-5", fileName ? "text-primary" : "text-muted-foreground")} />
+                  <span className={cn("text-sm font-medium", fileName ? "text-primary truncate max-w-[200px]" : "text-muted-foreground")}>
+                    {fileName || "Click to browse or drag & drop"}
+                  </span>
+                </div>
+                <input
+                  id="file"
+                  name="file"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.webp"
+                  required
+                  disabled={pending}
+                  className="sr-only"
+                  onChange={handleFileChange}
+                />
+              </label>
             </div>
 
-            {/* Document Date */}
-            <div className="space-y-2">
-              <Label htmlFor="document_date">Document Date</Label>
-              <Input
-                id="document_date"
-                name="document_date"
-                type="date"
-                defaultValue={new Date().toISOString().split('T')[0]}
-                required
-                disabled={pending}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            {/* Vendor */}
-            <div className="space-y-2">
-              <Label htmlFor="vendor">Vendor / Supplier Name</Label>
-              <VendorAutocomplete 
-                onSelect={(id, name, pan) => {
-                  setVendorName(name)
-                  if (pan) setGstPan(pan)
-                }} 
-                disabled={pending} 
-              />
-              <input type="hidden" name="vendor" value={vendorName} />
-              <input type="hidden" name="gst_pan" value={gstPan} />
-            </div>
-
-            {/* Unique Code */}
-            <div className="space-y-2">
-              <Label htmlFor="unique_code">Unique Code / Bill No.</Label>
-              <Input
-                id="unique_code"
-                name="unique_code"
-                placeholder="e.g. UC-789"
-                disabled={pending}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            {/* Invoice Number */}
-            <div className="space-y-2">
-              <Label htmlFor="invoice_number">Invoice Number</Label>
-              <Input
-                id="invoice_number"
-                name="invoice_number"
-                placeholder="e.g. INV-2024-001"
-                disabled={pending}
-              />
-            </div>
-
-            {/* State */}
-            <div className="space-y-2">
-              <Label htmlFor="state">State</Label>
-              <select
-                id="state"
-                name="state"
-                disabled={pending}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <option value="">-- Select State --</option>
-                {INDIAN_STATES.map((stateName) => (
-                  <option key={stateName} value={stateName}>
-                    {stateName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Amount */}
-          <div className="space-y-2">
-            <Label htmlFor="amount">Bill Amount (₹)</Label>
-            <Input
-              id="amount"
-              name="amount"
-              type="number"
-              step="0.01"
-              min="0"
-              placeholder="e.g. 12500.00"
-              required
-              disabled={pending}
-            />
-          </div>
-
-          {/* File Upload */}
-          <div className="space-y-2">
-            <Label htmlFor="file">Bill Attachment (PDF or Image)</Label>
-            <label
-              htmlFor="file"
-              className="flex h-24 w-full cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-input bg-background transition-colors hover:border-primary hover:bg-primary/5"
-            >
-              <FileText className="mb-2 h-6 w-6 text-muted-foreground" />
-              {fileName ? (
-                <span className="text-sm font-medium text-primary truncate max-w-[90%]">{fileName}</span>
+            <Button type="submit" disabled={pending} className="h-20 w-full flex-col gap-2 rounded-xl">
+              {pending ? (
+                <><Loader2 className="h-5 w-5 animate-spin" /> <span>Uploading...</span></>
               ) : (
-                <span className="text-sm text-muted-foreground">Click to browse or drag & drop</span>
+                <><CheckCircle2 className="h-5 w-5" /> <span>Submit Bill</span></>
               )}
-              <input
-                id="file"
-                name="file"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.webp"
-                required
-                disabled={pending}
-                className="sr-only"
-                onChange={handleFileChange}
-              />
-            </label>
+            </Button>
           </div>
-
-          <Button type="submit" disabled={pending || sites.length === 0} className="w-full">
-            {pending ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...</>
-            ) : (
-              <><Upload className="mr-2 h-4 w-4" /> Submit Bill for Review</>
-            )}
-          </Button>
         </form>
       ) : (
         <div className="space-y-6">
           {/* AI Mode UI */}
           <div className="space-y-4">
             <div className="grid gap-5 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="bulk_site_id">Project Site</Label>
-                <select
-                  id="bulk_site_id"
-                  value={selectedSiteId}
-                  onChange={(e) => setSelectedSiteId(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={isSubmittingBulk || isExtracting}
-                >
-                  <option value="">-- Select a site --</option>
-                  {sites.map((site) => (
-                    <option key={site.id} value={site.id}>
-                      {site.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div className="space-y-2">
                 <Label>Document File</Label>
                 <label
@@ -357,6 +307,7 @@ export function UploadDocumentForm({ sites }: { sites: Site[] }) {
                         <TableHead>Vendor</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Invoice No</TableHead>
+                        <TableHead>Unique Code</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead className="w-[80px]">Actions</TableHead>
                       </TableRow>
@@ -365,9 +316,36 @@ export function UploadDocumentForm({ sites }: { sites: Site[] }) {
                       {extractedRows.map((row, index) => (
                         <TableRow key={index}>
                           <TableCell className="font-medium">{row.vendor_name}</TableCell>
-                          <TableCell>{row.document_date}</TableCell>
-                          <TableCell>{row.invoice_number}</TableCell>
-                          <TableCell>₹{row.amount?.toLocaleString()}</TableCell>
+                          <TableCell className="p-1">
+                            <Input 
+                              value={row.document_date} 
+                              onChange={(e) => handleUpdateRow(index, { document_date: e.target.value })}
+                              className="h-8 py-1 px-2"
+                            />
+                          </TableCell>
+                          <TableCell className="p-1">
+                            <Input 
+                              value={row.invoice_number} 
+                              onChange={(e) => handleUpdateRow(index, { invoice_number: e.target.value })}
+                              className="h-8 py-1 px-2"
+                            />
+                          </TableCell>
+                          <TableCell className="p-1">
+                            <Input 
+                              value={row.unique_code || ''} 
+                              placeholder="Fill Code"
+                              onChange={(e) => handleUpdateRow(index, { unique_code: e.target.value })}
+                              className="h-8 py-1 px-2 font-mono text-xs"
+                            />
+                          </TableCell>
+                          <TableCell className="p-1">
+                            <Input 
+                              type="number"
+                              value={row.amount} 
+                              onChange={(e) => handleUpdateRow(index, { amount: parseFloat(e.target.value) || 0 })}
+                              className="h-8 py-1 px-2 font-bold"
+                            />
+                          </TableCell>
                           <TableCell>
                             <Button 
                               variant="ghost" 
@@ -387,13 +365,13 @@ export function UploadDocumentForm({ sites }: { sites: Site[] }) {
 
                 <Button 
                   onClick={handleBulkUpload} 
-                  disabled={isSubmittingBulk || !selectedSiteId} 
+                  disabled={isSubmittingBulk || !currentSiteId} 
                   className="w-full"
                 >
                   {isSubmittingBulk ? (
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading {extractedRows.length} documents...</>
                   ) : (
-                    <><CheckCircle2 className="mr-2 h-4 w-4" /> Bulk Submit {extractedRows.length} Documents</>
+                    <><CheckCircle2 className="mr-2 h-4 w-4" /> Bulk Submit {extractedRows.length} Documents to {sites.find(s => s.id === currentSiteId)?.name}</>
                   )}
                 </Button>
               </div>
