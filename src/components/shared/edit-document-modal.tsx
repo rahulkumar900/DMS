@@ -64,6 +64,7 @@ export function EditDocumentModal({
   const [isPending, setIsPending] = useState(false)
   const [formData, setFormData] = useState({
     vendorName: '',
+    vendorId: '',
     amount: '',
     invoiceNumber: '',
     uniqueCode: '',
@@ -82,6 +83,7 @@ export function EditDocumentModal({
     if (document) {
       setFormData({
         vendorName: document.vendors?.name || '',
+        vendorId: document.vendor_id || '',
         amount: document.amount.toString(),
         invoiceNumber: document.invoice_number || '',
         uniqueCode: document.unique_code || '',
@@ -179,6 +181,7 @@ export function EditDocumentModal({
       const statusUpdate = document.status === 'REJECTED' ? { status: 'PENDING' } : {}
       
       const result = await updateDocument(document.id, {
+        vendor_id: formData.vendorId,
         amount: parseFloat(formData.amount) || 0, // Cast to number for TS
         invoice_number: formData.invoiceNumber,
         unique_code: formData.uniqueCode,
@@ -371,8 +374,8 @@ export function EditDocumentModal({
                     <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-tight">Vendor Name</Label>
                     <VendorAutocomplete 
                       defaultValue={formData.vendorName}
-                      onSelect={(name) => setFormData(prev => ({ ...prev, vendorName: name }))}
-                      disabled={true} 
+                      onSelect={(id, name) => setFormData(prev => ({ ...prev, vendorName: name, vendorId: id }))}
+                      disabled={isPending} 
                     />
                   </div>
 

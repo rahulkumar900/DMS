@@ -28,7 +28,7 @@ interface Vendor {
 }
 
 interface VendorAutocompleteProps {
-  onSelect: (vendorName: string, gstPan?: string) => void
+  onSelect: (vendorId: string, vendorName: string, gstPan?: string) => void
   defaultValue?: string
   disabled?: boolean
 }
@@ -110,7 +110,7 @@ export function VendorAutocomplete({ onSelect, defaultValue = '', disabled }: Ve
                   value={vendor.name}
                   onSelect={(currentValue) => {
                     setValue(currentValue)
-                    onSelect(vendor.name, vendor.pan_gst)
+                    onSelect(vendor.id, vendor.name, vendor.pan_gst)
                     setOpen(false)
                   }}
                 >
@@ -138,7 +138,7 @@ export function VendorAutocomplete({ onSelect, defaultValue = '', disabled }: Ve
         initialName={query}
         onSuccess={(vendor) => {
           setValue(vendor.name)
-          onSelect(vendor.name, vendor.pan_gst)
+          onSelect(vendor.id, vendor.name, vendor.pan_gst)
           setOpen(false)
         }}
       />

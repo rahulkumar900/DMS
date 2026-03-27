@@ -403,6 +403,8 @@ export async function updateDocument(id: string, updates: {
     }
 
     revalidatePath('/team', 'layout')
+    revalidatePath('/checker', 'layout')
+    revalidatePath('/accounts', 'layout')
     return { success: true }
   } catch (err: any) {
     console.error('Action error:', err)

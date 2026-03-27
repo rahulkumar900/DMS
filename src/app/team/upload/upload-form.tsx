@@ -196,7 +196,7 @@ export function UploadDocumentForm({ sites }: { sites: Site[] }) {
             <div className="space-y-2">
               <Label htmlFor="vendor">Vendor / Supplier Name</Label>
               <VendorAutocomplete 
-                onSelect={(name, pan) => {
+                onSelect={(id, name, pan) => {
                   setVendorName(name)
                   if (pan) setGstPan(pan)
                 }} 
