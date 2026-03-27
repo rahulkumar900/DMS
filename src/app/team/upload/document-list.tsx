@@ -8,12 +8,14 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { deleteDocument, updateDocument } from '@/app/actions/team'
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { IndianRupee, Eye, Building } from 'lucide-react'
 
 interface Document {
   id: string
@@ -27,64 +29,90 @@ interface Document {
 }
 
 const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
-  PENDING:  { label: 'Pending',  variant: 'secondary' },
-  APPROVED: { label: 'Approved', variant: 'default' },
-  REJECTED: { label: 'Rejected', variant: 'destructive' },
+  PENDING:  { label: 'PENDING',  variant: 'secondary' },
+  APPROVED: { label: 'APPROVED', variant: 'default' },
+  REJECTED: { label: 'REJECTED', variant: 'destructive' },
 }
 
 export function DocumentStatusList({ documents }: { documents: Document[] }) {
-  const [isPending, startTransition] = useTransition()
   const searchParams = useSearchParams()
 
   if (documents.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-48 text-muted-foreground text-sm">
-        <FileText className="h-10 w-10 mb-3 opacity-30" />
-        <p>No bills uploaded yet.</p>
+      <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed rounded-xl bg-muted/5">
+        <FileText className="h-10 w-10 mb-3 text-muted-foreground opacity-20" />
+        <h3 className="text-sm font-medium text-muted-foreground">No bills uploaded recently.</h3>
       </div>
     )
   }
 
   return (
-    <ul className="space-y-3">
-      {documents.map((doc) => {
-        const config = statusConfig[doc.status] || statusConfig.PENDING
-        const date = new Date(doc.created_at).toLocaleDateString('en-IN', {
-          day: 'numeric', month: 'short', year: 'numeric'
-        })
+    <div className="rounded-lg border bg-card overflow-hidden shadow-sm">
+      <Table>
+        <TableHeader className="bg-muted/50">
+          <TableRow>
+            <TableHead className="w-[120px]">Date</TableHead>
+            <TableHead>Vendor</TableHead>
+            <TableHead className="hidden md:table-cell">Site</TableHead>
+            <TableHead className="text-right">Amount</TableHead>
+            <TableHead className="text-center w-[120px]">Status</TableHead>
+            <TableHead className="text-right w-[80px]">Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {documents.map((doc) => {
+            const config = statusConfig[doc.status] || statusConfig.PENDING
+            const formattedDate = new Intl.DateTimeFormat('en-IN', { 
+              day: '2-digit', month: 'short', year: 'numeric' 
+            }).format(new Date(doc.created_at))
 
-        return (
-          <li key={doc.id} className="flex items-start justify-between gap-4 rounded-lg border border-border bg-background/50 p-4 transition-colors hover:bg-muted/50">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-medium truncate">{doc.vendor}</span>
-                <Badge variant={config.variant}>{config.label}</Badge>
-              </div>
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                {/* @ts-ignore */}
-                <span>{doc.sites?.name}</span>
-                <span>·</span>
-                <span>₹{doc.amount.toLocaleString('en-IN')}</span>
-                <span>·</span>
-                <span>{date}</span>
-              </div>
-              {doc.remarks && doc.status !== 'APPROVED' && (
-                <p className="mt-1 text-xs text-amber-400 italic">"{doc.remarks}"</p>
-              )}
-            </div>
-            
-            <div className="flex items-center gap-2 shrink-0">
-              <Link
-                href={`/team/documents/${doc.id}${searchParams.get('site') ? `?site=${searchParams.get('site')}` : ""}`}
-                className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-8 w-8 text-muted-foreground hover:text-foreground")}
-                title="View Details"
-              >
-                <FileText className="h-4 w-4" />
-              </Link>
-            </div>
-          </li>
-        )
-      })}
-    </ul>
+            return (
+              <TableRow key={doc.id} className="group cursor-default hover:bg-muted/50 transition-colors">
+                <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                  {formattedDate}
+                </TableCell>
+                <TableCell className="font-medium">
+                  {doc.vendor}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Building className="h-3 w-3" />
+                    {doc.sites?.name || 'N/A'}
+                  </div>
+                </TableCell>
+                <TableCell className="text-right tabular-nums font-semibold">
+                  <div className="flex items-center justify-end text-sm">
+                    <IndianRupee className="h-3 w-3" />
+                    {doc.amount.toLocaleString('en-IN')}
+                  </div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Badge 
+                    variant={config.variant}
+                    className="px-2 py-0.5 text-[10px] uppercase font-bold tracking-tight"
+                  >
+                    {config.label}
+                  </Badge>
+                  {doc.remarks && doc.status !== 'APPROVED' && (
+                    <p className="mt-1 text-[10px] text-destructive italic truncate max-w-[100px] mx-auto" title={doc.remarks}>
+                      {doc.remarks}
+                    </p>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Link
+                    href={`/team/documents/${doc.id}${searchParams.get('site') ? `?site=${searchParams.get('site')}` : ""}`}
+                    className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-8 w-8 text-muted-foreground hover:text-primary transition-colors opacity-0 group-hover:opacity-100")}
+                    title="View Details"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Link>
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
+    </div>
   )
 }

@@ -159,14 +159,14 @@ export function UploadDocumentForm({ sites }: { sites: Site[] }) {
         <form ref={formRef} action={formAction} className="space-y-6" suppressHydrationWarning>
           <input type="hidden" name="site_id" value={currentSiteId} />
           
-          <div className="rounded-xl border border-divider bg-muted/30 overflow-hidden shadow-sm">
+          <div className="rounded-lg border bg-card overflow-hidden shadow-sm">
             <Table>
-              <TableHeader className="bg-muted/50 border-b">
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="py-2 text-xs font-bold uppercase tracking-wider h-10">Vendor Details</TableHead>
-                  <TableHead className="py-2 text-xs font-bold uppercase tracking-wider h-10 w-[160px]">Bill Metadata</TableHead>
-                  <TableHead className="py-2 text-xs font-bold uppercase tracking-wider h-10 w-[140px]">Date</TableHead>
-                  <TableHead className="py-2 text-xs font-bold uppercase tracking-wider h-10 w-[160px]">Amount (₹)</TableHead>
+              <TableHeader className="bg-muted/50">
+                <TableRow className="hover:bg-transparent transition-none">
+                  <TableHead className="py-2 text-[10px] font-bold uppercase tracking-wider h-10 px-4">Vendor Details</TableHead>
+                  <TableHead className="py-2 text-[10px] font-bold uppercase tracking-wider h-10 w-[160px] px-4">Bill Metadata</TableHead>
+                  <TableHead className="py-2 text-[10px] font-bold uppercase tracking-wider h-10 w-[140px] px-4">Date</TableHead>
+                  <TableHead className="py-2 text-[10px] font-bold uppercase tracking-wider h-10 w-[160px] px-4">Amount (₹)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -300,57 +300,57 @@ export function UploadDocumentForm({ sites }: { sites: Site[] }) {
 
             {!isExtracting && extractedRows.length > 0 && (
               <div className="space-y-4">
-                <div className="rounded-md border overflow-hidden">
+                <div className="rounded-lg border bg-card overflow-hidden shadow-sm">
                   <Table>
                     <TableHeader className="bg-muted/50">
-                      <TableRow>
-                        <TableHead>Vendor</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Invoice No</TableHead>
-                        <TableHead>Unique Code</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead className="w-[80px]">Actions</TableHead>
+                      <TableRow className="hover:bg-transparent transition-none">
+                        <TableHead className="py-2 text-[10px] font-bold uppercase tracking-wider h-10 px-4">Vendor</TableHead>
+                        <TableHead className="py-2 text-[10px] font-bold uppercase tracking-wider h-10 px-4">Date</TableHead>
+                        <TableHead className="py-2 text-[10px] font-bold uppercase tracking-wider h-10 px-4">Invoice No</TableHead>
+                        <TableHead className="py-2 text-[10px] font-bold uppercase tracking-wider h-10 px-4">Unique Code</TableHead>
+                        <TableHead className="py-2 text-[10px] font-bold uppercase tracking-wider h-10 px-4">Amount</TableHead>
+                        <TableHead className="py-2 text-[10px] font-bold uppercase tracking-wider h-10 w-[80px] px-4 text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {extractedRows.map((row, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">{row.vendor_name}</TableCell>
-                          <TableCell className="p-1">
+                        <TableRow key={index} className="hover:bg-muted/50 transition-colors">
+                          <TableCell className="font-medium px-4">{row.vendor_name}</TableCell>
+                          <TableCell className="p-2 px-4 whitespace-nowrap">
                             <Input 
                               value={row.document_date} 
                               onChange={(e) => handleUpdateRow(index, { document_date: e.target.value })}
-                              className="h-8 py-1 px-2"
+                              className="h-8 py-1 px-2 text-xs"
                             />
                           </TableCell>
-                          <TableCell className="p-1">
+                          <TableCell className="p-2 px-4">
                             <Input 
                               value={row.invoice_number} 
                               onChange={(e) => handleUpdateRow(index, { invoice_number: e.target.value })}
-                              className="h-8 py-1 px-2"
+                              className="h-8 py-1 px-2 text-xs"
                             />
                           </TableCell>
-                          <TableCell className="p-1">
+                          <TableCell className="p-2 px-4">
                             <Input 
                               value={row.unique_code || ''} 
                               placeholder="Fill Code"
                               onChange={(e) => handleUpdateRow(index, { unique_code: e.target.value })}
-                              className="h-8 py-1 px-2 font-mono text-xs"
+                              className="h-8 py-1 px-2 font-mono text-[10px]"
                             />
                           </TableCell>
-                          <TableCell className="p-1">
+                          <TableCell className="p-2 px-4 tabular-nums">
                             <Input 
                               type="number"
                               value={row.amount} 
                               onChange={(e) => handleUpdateRow(index, { amount: parseFloat(e.target.value) || 0 })}
-                              className="h-8 py-1 px-2 font-bold"
+                              className="h-8 py-1 px-2 font-bold text-xs"
                             />
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-4 text-right">
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="h-8 w-8 text-destructive"
+                              className="h-8 w-8 text-destructive hover:bg-destructive/10"
                               onClick={() => handleRemoveRow(index)}
                               disabled={isSubmittingBulk}
                             >
