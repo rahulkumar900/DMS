@@ -230,19 +230,6 @@ export function UniversalDocumentTable({
     }
   }
 
-  if (documents.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed rounded-xl bg-muted/5">
-        <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-          <FileText className="h-6 w-6 text-muted-foreground" />
-        </div>
-        <h3 className="text-lg font-semibold">No documents found</h3>
-        <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-1">
-          Adjust your filters or search terms to find what you're looking for.
-        </p>
-      </div>
-    )
-  }
 
   return (
     <div className="w-full space-y-4">
@@ -314,7 +301,28 @@ export function UniversalDocumentTable({
         </div>
       )}
 
-      <div className="rounded-lg border bg-card overflow-hidden shadow-sm">
+      {documents.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed rounded-xl bg-card/50">
+          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+            <FileText className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold">No documents found</h3>
+          <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-1">
+            Adjust your filters or search terms to find what you're looking for.
+          </p>
+          {hasFilters && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={clearFilters}
+              className="mt-4"
+            >
+              Clear All Filters
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-lg border bg-card overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
@@ -469,6 +477,7 @@ export function UniversalDocumentTable({
           </TableBody>
         </Table>
       </div>
+      )}
 
       <DocumentPreviewModal 
         document={selectedDoc} 
