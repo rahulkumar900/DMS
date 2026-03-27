@@ -54,6 +54,7 @@ import { DocumentPreviewModal } from "./document-preview-modal"
 import { EditDocumentModal } from "./edit-document-modal"
 import { cn, parseFileUrls } from "@/lib/utils"
 import { exportDocumentsToExcel } from "@/lib/export"
+import { toast } from "sonner"
 
 interface UniversalDocumentTableProps {
   documents: Document[]

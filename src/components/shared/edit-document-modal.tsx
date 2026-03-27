@@ -179,7 +179,7 @@ export function EditDocumentModal({
       const statusUpdate = document.status === 'REJECTED' ? { status: 'PENDING' } : {}
       
       const result = await updateDocument(document.id, {
-        amount: formData.amount, // Server action handles parseFloat and NaN
+        amount: parseFloat(formData.amount) || 0, // Cast to number for TS
         invoice_number: formData.invoiceNumber,
         unique_code: formData.uniqueCode,
         document_date: formData.documentDate,

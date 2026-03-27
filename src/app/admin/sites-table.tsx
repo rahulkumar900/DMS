@@ -34,13 +34,11 @@ export function SitesTable({ sites }: { sites: any[] }) {
         <h2 className="text-xl font-semibold">Sites Management</h2>
         
         <Dialog>
-          <DialogTrigger
-            render={
-              <Button size="sm" variant="default">
-                <Plus className="mr-2 h-4 w-4" /> Add Site
-              </Button>
-            }
-          />
+          <DialogTrigger asChild>
+            <Button size="sm" variant="default">
+              <Plus className="mr-2 h-4 w-4" /> Add Site
+            </Button>
+          </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Add New Site</DialogTitle>
